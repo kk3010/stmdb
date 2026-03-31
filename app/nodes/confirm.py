@@ -47,5 +47,10 @@ async def await_confirmation(state: GraphState) -> dict:
 	return result
 
 
-instrument_module_functions(globals(), logging.getLogger("smtdb.nodes.confirm"), exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logging.getLogger("smtdb.nodes.confirm"),
+	exclude={"instrument_module_functions"},
+	include={"await_confirmation"},
+)
 

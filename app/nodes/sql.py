@@ -45,5 +45,10 @@ async def build_and_run_sql(state: GraphState) -> dict:
 	return {"sql": sql, "db_results": results}
 
 
-instrument_module_functions(globals(), logger, exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logger,
+	exclude={"instrument_module_functions"},
+	include={"build_and_run_sql"},
+)
 

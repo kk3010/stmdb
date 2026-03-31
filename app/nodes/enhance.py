@@ -114,5 +114,10 @@ async def enhance_query(state: GraphState) -> dict:
 	}
 
 
-instrument_module_functions(globals(), logger, exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logger,
+	exclude={"instrument_module_functions"},
+	include={"enhance_query"},
+)
 

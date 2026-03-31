@@ -81,4 +81,9 @@ async def validate_schema(table_name: str, doc_column_names: list[str]) -> None:
 		logger.warning("Schema validation skipped due to DB issue", exc_info=exc)
 
 
-instrument_module_functions(globals(), logger, exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logger,
+	exclude={"instrument_module_functions"},
+	include={"execute_query"},
+)

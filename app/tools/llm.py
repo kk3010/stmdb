@@ -68,4 +68,9 @@ async def embed(text: str, input_type: str = "query") -> list[float]:
 		raise RuntimeError("Could not generate embeddings. Please try again.") from None
 
 
-	instrument_module_functions(globals(), logger, exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logger,
+	exclude={"instrument_module_functions"},
+	include={"chat_complete"},
+)

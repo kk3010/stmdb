@@ -15,5 +15,10 @@ async def map_columns(state: GraphState) -> dict:
 		return {"error": "Could not search column documentation. Run 'make ingest' first."}
 
 
-instrument_module_functions(globals(), logging.getLogger("smtdb.nodes.map_columns"), exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logging.getLogger("smtdb.nodes.map_columns"),
+	exclude={"instrument_module_functions"},
+	include={"map_columns"},
+)
 

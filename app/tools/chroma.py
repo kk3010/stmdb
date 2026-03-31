@@ -161,4 +161,9 @@ if __name__ == "__main__":
 	main()
 
 
-instrument_module_functions(globals(), logger, exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logger,
+	exclude={"instrument_module_functions"},
+	include={"ingest_columns", "search_columns"},
+)

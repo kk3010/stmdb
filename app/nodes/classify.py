@@ -66,4 +66,9 @@ async def classify_intent(state: GraphState) -> dict:
 	return {"intent": intent}
 
 
-instrument_module_functions(globals(), logger, exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logger,
+	exclude={"instrument_module_functions"},
+	include={"classify_intent"},
+)

@@ -24,6 +24,20 @@ def _get_graph():
 	return build_graph()
 
 
+def _render_message_body(message: dict[str, Any]) -> None:
+	st.markdown(message["content"])
+	if "dataframe" in message:
+		st.dataframe(message["dataframe"], use_container_width=True)
+
+
+def _append_assistant_message(content: str, dataframe: pd.DataFrame | None = None) -> dict[str, Any]:
+	message: dict[str, Any] = {"role": "assistant", "content": content}
+	if dataframe is not None:
+		message["dataframe"] = dataframe
+	st.session_state.messages.append(message)
+	return message
+
+
 def _build_dataframe(db_results: list[dict], col_docs: list[dict]) -> pd.DataFrame:
 	label_map = {c.get("column_name"): c.get("human_label") for c in col_docs}
 	df = pd.DataFrame(db_results)
@@ -32,77 +46,77 @@ def _build_dataframe(db_results: list[dict], col_docs: list[dict]) -> pd.DataFra
 
 
 def _extract_interrupt_message(payload: Any) -> str:
+	# Direct dict with message key (legacy path)
 	if isinstance(payload, dict) and "message" in payload and payload["message"]:
 		return str(payload["message"])
 
-	interrupts = None
+	# Result dict with __interrupt__ key
 	if isinstance(payload, dict) and "__interrupt__" in payload:
-		interrupts = payload.get("__interrupt__")
-	elif hasattr(payload, "args") and payload.args:
-		maybe = payload.args[0]
-		if isinstance(maybe, dict) and "__interrupt__" in maybe:
-			interrupts = maybe.get("__interrupt__")
-		elif isinstance(maybe, dict) and "message" in maybe:
-			return str(maybe["message"])
+		interrupts = payload["__interrupt__"]
+		if interrupts:
+			value = getattr(interrupts[0], "value", None)
+			if isinstance(value, dict) and value.get("message"):
+				return str(value["message"])
 
-	if interrupts:
-		first = interrupts[0]
-		value = getattr(first, "value", None)
-		if isinstance(value, dict) and value.get("message"):
-			return str(value["message"])
+	# GraphInterrupt exception: exc.args is a tuple of Interrupt objects
+	if hasattr(payload, "args") and payload.args:
+		for item in payload.args:
+			value = getattr(item, "value", None)
+			if isinstance(value, dict) and value.get("message"):
+				return str(value["message"])
+			if isinstance(item, dict) and item.get("message"):
+				return str(item["message"])
 
 	return "Please confirm the query interpretation."
 
 
-def _handle_interrupt(exc: Exception) -> None:
-	data = getattr(exc, "args", [{}])[0]
-	confirmation = _extract_interrupt_message(data)
-
-	st.session_state.messages.append(
-		{"role": "assistant", "content": confirmation + "\n\nReply yes/no/rephrase"}
-	)
+def _handle_interrupt(exc: Exception) -> dict[str, Any]:
+	confirmation = _extract_interrupt_message(exc)
 	st.session_state.awaiting_confirmation = True
+	return _append_assistant_message(confirmation + "\n\nReply yes/no/rephrase")
 
 
 def _is_interrupt_payload(payload: Any) -> bool:
+	# Result dict
 	if isinstance(payload, dict) and "__interrupt__" in payload:
 		return True
 	if isinstance(payload, dict) and "message" in payload:
 		return True
+	# GraphInterrupt exception: args is a tuple of Interrupt objects
 	if hasattr(payload, "args") and getattr(payload, "args", None):
-		first = payload.args[0]
-		return isinstance(first, dict) and ("__interrupt__" in first or "message" in first)
+		for item in payload.args:
+			if hasattr(item, "value"):  # Interrupt namedtuple/object
+				return True
+			if isinstance(item, dict) and ("__interrupt__" in item or "message" in item):
+				return True
 	return False
 
 
-def _handle_interrupt_result(result: dict) -> bool:
+def _handle_interrupt_result(result: dict) -> dict[str, Any] | None:
 	if "__interrupt__" not in result:
-		return False
+		return None
 	confirmation = _extract_interrupt_message(result)
-	st.session_state.messages.append(
-		{"role": "assistant", "content": confirmation + "\n\nReply yes/no/rephrase"}
-	)
 	st.session_state.awaiting_confirmation = True
-	return True
+	return _append_assistant_message(confirmation + "\n\nReply yes/no/rephrase")
 
 
 
-def _handle_result(result: dict) -> bool:
-	if _handle_interrupt_result(result):
-		return True
+def _handle_result(result: dict) -> tuple[bool, dict[str, Any] | None]:
+	interrupt_message = _handle_interrupt_result(result)
+	if interrupt_message is not None:
+		return True, interrupt_message
 
 	if result.get("error"):
 		logger.error("Graph error: %s", result.get("error"))
-		st.error("Something went wrong. Please try rephrasing.")
-		return False
+		return False, _append_assistant_message("Something went wrong. Please try rephrasing.")
 
 	final_response = result.get("final_response")
 	if final_response:
-		msg: dict = {"role": "assistant", "content": final_response}
+		dataframe = None
 		if result.get("db_results"):
-			msg["dataframe"] = _build_dataframe(result["db_results"], result.get("retrieved_col_docs", []))
-		st.session_state.messages.append(msg)
-	return False
+			dataframe = _build_dataframe(result["db_results"], result.get("retrieved_col_docs", []))
+		return False, _append_assistant_message(final_response, dataframe)
+	return False, None
 
 
 def main() -> None:
@@ -118,9 +132,7 @@ def main() -> None:
 
 	for msg in st.session_state.messages:
 		with st.chat_message(msg["role"]):
-			st.markdown(msg["content"])
-			if "dataframe" in msg:
-				st.dataframe(msg["dataframe"], use_container_width=True)
+			_render_message_body(msg)
 
 	user_input = st.chat_input("Ask about cost centers...")
 	if not user_input:
@@ -128,22 +140,28 @@ def main() -> None:
 
 	config = {"configurable": {"thread_id": st.session_state.thread_id}}
 	st.session_state.messages.append({"role": "user", "content": user_input})
+	with st.chat_message("user"):
+		st.markdown(user_input)
 
 	try:
-		if st.session_state.awaiting_confirmation:
-			result = asyncio.run(_get_graph().ainvoke(Command(resume=user_input), config=config))
-			still_waiting = _handle_result(result)
+		with st.chat_message("assistant"):
+			with st.spinner("Thinking..."):
+				if st.session_state.awaiting_confirmation:
+					result = asyncio.run(_get_graph().ainvoke(Command(resume=user_input), config=config))
+				else:
+					result = asyncio.run(_get_graph().ainvoke(initial_state(user_input), config=config))
+			still_waiting, assistant_message = _handle_result(result)
 			st.session_state.awaiting_confirmation = still_waiting
-		else:
-			result = asyncio.run(_get_graph().ainvoke(initial_state(user_input), config=config))
-			_handle_result(result)
+			if assistant_message is not None:
+				_render_message_body(assistant_message)
 	except Exception as exc:  # noqa: BLE001
 		if _is_interrupt_payload(exc):
-			_handle_interrupt(exc)
-			st.rerun()
+			with st.chat_message("assistant"):
+				_render_message_body(_handle_interrupt(exc))
 		else:
 			logger.error("Unhandled app error", exc_info=exc)
-			st.error("Something went wrong. Please try rephrasing.")
+			with st.chat_message("assistant"):
+				_render_message_body(_append_assistant_message("Something went wrong. Please try rephrasing."))
 
 
 if __name__ == "__main__":

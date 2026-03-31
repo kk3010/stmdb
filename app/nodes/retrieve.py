@@ -27,5 +27,10 @@ async def answer_from_docs(state: GraphState) -> dict:
 		return {"error": "Could not answer from documentation. Please try again."}
 
 
-instrument_module_functions(globals(), logging.getLogger("smtdb.nodes.retrieve"), exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logging.getLogger("smtdb.nodes.retrieve"),
+	exclude={"instrument_module_functions"},
+	include={"retrieve_docs", "answer_from_docs"},
+)
 

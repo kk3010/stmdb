@@ -39,5 +39,10 @@ async def humanize_response(state: GraphState) -> dict:
 	return {"final_response": summary}
 
 
-instrument_module_functions(globals(), logging.getLogger("smtdb.nodes.humanize"), exclude={"instrument_module_functions"})
+instrument_module_functions(
+	globals(),
+	logging.getLogger("smtdb.nodes.humanize"),
+	exclude={"instrument_module_functions"},
+	include={"humanize_response"},
+)
 
