@@ -1,0 +1,267 @@
+{
+  "columns": [
+    {
+      "column_name": "cc_id",
+      "human_label": "Cost Center ID",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "allowed_values": null,
+      "description": "Internal auto-incremented numeric identifier for each cost center record. Used for joins and as the primary key. Not shown to end users.",
+      "example_values": ["1", "42", "150"]
+    },
+    {
+      "column_name": "cc_code",
+      "human_label": "Cost Center Code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": null,
+      "description": "SAP-style alphanumeric cost center code in the format KS-{ORG}-{NNNN}. Unique identifier used in financial postings and reporting. Users typically refer to cost centers by this code.",
+      "example_values": ["KS-FIN-0001", "KS-IT-0003", "KS-OPS-0012"]
+    },
+    {
+      "column_name": "cc_name",
+      "human_label": "Cost Center Name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": null,
+      "description": "Full descriptive name of the cost center, combining the organizational unit and region. Used for display purposes in reports and the chat interface.",
+      "example_values": ["Finance & Controlling – Bayern 01", "IT – Wien 03"]
+    },
+    {
+      "column_name": "cc_type",
+      "human_label": "Cost Center Type",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": ["COST", "PROFIT", "INVEST", "OVERHEAD"],
+      "description": "Classification of the cost center by its financial function. COST centers accumulate costs only. PROFIT centers track both revenues and costs. INVEST centers manage capital expenditures. OVERHEAD centers collect indirect costs distributed to other centers.",
+      "example_values": ["COST", "PROFIT"]
+    },
+    {
+      "column_name": "cc_type_label",
+      "human_label": "Cost Center Type (Label)",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": [
+        "Cost Center",
+        "Profit Center",
+        "Investment Center",
+        "Overhead Center"
+      ],
+      "description": "Human-readable label corresponding to cc_type. Used for display in reports. Mirrors cc_type but in full words.",
+      "example_values": ["Cost Center", "Overhead Center"]
+    },
+    {
+      "column_name": "status",
+      "human_label": "Status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": ["ACTIVE", "INACTIVE", "BLOCKED"],
+      "description": "Current operational status of the cost center. ACTIVE cost centers accept financial postings. INACTIVE cost centers are no longer in use but retained for historical reporting. BLOCKED cost centers are temporarily locked and cannot accept postings.",
+      "example_values": ["ACTIVE", "INACTIVE", "BLOCKED"]
+    },
+    {
+      "column_name": "org_unit_code",
+      "human_label": "Organisational Unit Code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": [
+        "FIN",
+        "IT",
+        "HR",
+        "OPS",
+        "MKT",
+        "LOG",
+        "R&D",
+        "PRO",
+        "SAL",
+        "ADM"
+      ],
+      "description": "Short code identifying the organisational unit or department this cost center belongs to. Used for filtering and grouping in reports.",
+      "example_values": ["FIN", "IT", "OPS"]
+    },
+    {
+      "column_name": "org_unit_name",
+      "human_label": "Organisational Unit Name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": [
+        "Finance & Controlling",
+        "Information Technology",
+        "Human Resources",
+        "Operations",
+        "Marketing",
+        "Logistics",
+        "Research & Development",
+        "Production",
+        "Sales",
+        "Administration"
+      ],
+      "description": "Full name of the organisational unit or department. Corresponds to org_unit_code. Used in reports and the chat interface when users ask about departments.",
+      "example_values": ["Finance & Controlling", "Information Technology"]
+    },
+    {
+      "column_name": "region_code",
+      "human_label": "Region Code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": [
+        "DE-BY",
+        "DE-NW",
+        "DE-HE",
+        "DE-BW",
+        "DE-NI",
+        "AT-WI",
+        "AT-SA",
+        "CH-ZH",
+        "CH-BE"
+      ],
+      "description": "Geographic region code in ISO 3166-2 format. Identifies the federal state or region where the cost center is located. Germany uses DE-XX codes, Austria AT-XX, Switzerland CH-XX.",
+      "example_values": ["DE-BY", "AT-WI", "CH-ZH"]
+    },
+    {
+      "column_name": "region_name",
+      "human_label": "Region Name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": [
+        "Bayern",
+        "Nordrhein-Westfalen",
+        "Hessen",
+        "Baden-Württemberg",
+        "Niedersachsen",
+        "Wien",
+        "Salzburg",
+        "Zürich",
+        "Bern"
+      ],
+      "description": "Full name of the geographic region. Corresponds to region_code. Users may refer to regions by name (Bayern, Wien) or by code (DE-BY, AT-WI).",
+      "example_values": ["Bayern", "Wien", "Zürich"]
+    },
+    {
+      "column_name": "company_code",
+      "human_label": "Company Code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": ["1000", "2000", "3000"],
+      "description": "SAP company code identifying the legal entity this cost center belongs to. 1000 = Mustermann AG, 2000 = Beispiel GmbH, 3000 = Testfirma SE.",
+      "example_values": ["1000", "2000"]
+    },
+    {
+      "column_name": "company_name",
+      "human_label": "Company Name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": ["Mustermann AG", "Beispiel GmbH", "Testfirma SE"],
+      "description": "Full legal name of the company entity. Corresponds to company_code. Users may search by company name when filtering cost centers by legal entity.",
+      "example_values": ["Mustermann AG", "Beispiel GmbH"]
+    },
+    {
+      "column_name": "responsible_person",
+      "human_label": "Responsible Person",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": null,
+      "description": "Full name of the person responsible for managing this cost center. This person approves postings and is accountable for budget adherence. Common lookup: finding which cost centers a person is responsible for.",
+      "example_values": ["Anna Schmidt", "Thomas Müller"]
+    },
+    {
+      "column_name": "deputy_person",
+      "human_label": "Deputy",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "allowed_values": null,
+      "description": "Full name of the deputy responsible person who acts in the absence of the responsible person. May be NULL if no deputy is assigned.",
+      "example_values": ["Klaus Weber", "Sandra Fischer"]
+    },
+    {
+      "column_name": "controlling_person",
+      "human_label": "Controlling Person",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "allowed_values": null,
+      "description": "Full name of the controlling department contact for this cost center. Responsible for cost monitoring and reporting. May be NULL.",
+      "example_values": ["Peter Hoffmann", "Julia Bauer"]
+    },
+    {
+      "column_name": "valid_from",
+      "human_label": "Valid From",
+      "data_type": "DATE",
+      "nullable": false,
+      "allowed_values": null,
+      "description": "Date from which the cost center is valid and can be used for financial postings. ISO 8601 format (YYYY-MM-DD). All active cost centers have a valid_from date in the past.",
+      "example_values": ["2020-01-01", "2022-04-01"]
+    },
+    {
+      "column_name": "valid_to",
+      "human_label": "Valid To",
+      "data_type": "DATE",
+      "nullable": true,
+      "allowed_values": null,
+      "description": "Date until which the cost center is valid. NULL means the cost center has no planned end date (open-ended). Inactive and blocked cost centers typically have a valid_to date set.",
+      "example_values": ["2024-12-31", "2025-06-30"]
+    },
+    {
+      "column_name": "hierarchy_level",
+      "human_label": "Hierarchy Level",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": ["1", "2", "3"],
+      "description": "Position of the cost center in the organisational hierarchy. Level 1 = top-level (no parent). Level 2 = department level. Level 3 = team or sub-unit level. Higher levels report into lower-numbered levels.",
+      "example_values": ["1", "2", "3"]
+    },
+    {
+      "column_name": "parent_cc_code",
+      "human_label": "Parent Cost Center",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "allowed_values": null,
+      "description": "Cost center code of the parent cost center in the hierarchy. NULL for top-level (level 1) cost centers. References cc_code in the same table.",
+      "example_values": ["KS-FIN-0001", "KS-OPS-0002"]
+    },
+    {
+      "column_name": "budget_eur",
+      "human_label": "Budget (EUR)",
+      "data_type": "NUMERIC",
+      "nullable": false,
+      "allowed_values": null,
+      "description": "Annual budget allocated to this cost center in Euros. Used for budget vs. actual comparisons. Always in EUR regardless of the cost center's geographic location.",
+      "example_values": ["150000.00", "2000000.00", "500000.00"]
+    },
+    {
+      "column_name": "actual_eur",
+      "human_label": "Actual Spend (EUR)",
+      "data_type": "NUMERIC",
+      "nullable": false,
+      "allowed_values": null,
+      "description": "Actual year-to-date expenditure for this cost center in Euros. Compared against budget_eur to determine over/under-spend. Updated periodically from the ERP system.",
+      "example_values": ["132450.50", "1875000.00"]
+    },
+    {
+      "column_name": "currency",
+      "human_label": "Currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "allowed_values": ["EUR"],
+      "description": "Currency code for all financial values in this record. Always EUR. All budget and actual figures are stored and reported in Euros.",
+      "example_values": ["EUR"]
+    },
+    {
+      "column_name": "created_at",
+      "human_label": "Created On",
+      "data_type": "DATE",
+      "nullable": false,
+      "allowed_values": null,
+      "description": "Date the cost center record was created in the system. Audit field — not editable after creation.",
+      "example_values": ["2020-01-15", "2022-04-03"]
+    },
+    {
+      "column_name": "modified_at",
+      "human_label": "Last Modified",
+      "data_type": "DATE",
+      "nullable": false,
+      "allowed_values": null,
+      "description": "Date the cost center record was last modified. Updated whenever any field changes. Useful for identifying recently changed records.",
+      "example_values": ["2024-08-20", "2025-01-10"]
+    }
+  ]
+}
