@@ -3,5 +3,33 @@ name = "stmdb"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = []
+requires-python = ">=3.12"
+dependencies = [
+	"langgraph==1.1.*",
+	"langgraph-checkpoint-sqlite",
+	"anthropic==0.86.0",
+	"voyageai",
+	"chromadb==1.5.5",
+	"asyncpg==0.31.0",
+	"sqlglot==29.0.1",
+	"streamlit==1.55.0",
+	"pydantic-settings==2.13.1",
+	"python-dotenv>=1.0",
+	"pandas",
+	"langchain-core",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio", "pytest-mock", "ruff", "mypy"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true

@@ -56,7 +56,7 @@ Before starting Phase 0, verify all of the following are true. If any is missing
 ## Project Structure (target state)
 
 ```
-cc-chat/
+stmdb/
 ├── app/
 │   ├── __init__.py
 │   ├── config.py             # pydantic-settings — reads .env
@@ -378,7 +378,7 @@ __pycache__/
 #   Adds FileHandler(settings.log_path, encoding="utf-8") + StreamHandler(sys.stdout).
 #   Format: "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 #   Level: INFO
-#   Returns logging.getLogger("cc_chat")
+#   Returns logging.getLogger("smtdb")
 ```
 
 ### Tests for Phase 1
@@ -400,8 +400,8 @@ __pycache__/
 # test_db_password_hidden_in_repr(settings_override)
 #   assert "test_password" not in repr(settings_override)
 # test_setup_logging_creates_log_directory(tmp_path, monkeypatch)
-# test_setup_logging_returns_cc_chat_logger(tmp_path, monkeypatch)
-#   assert logger.name == "cc_chat"
+# test_setup_logging_returns_smtdb_logger(tmp_path, monkeypatch)
+#   assert logger.name == "smtdb"
 ```
 
 **Pass condition:** `uv run pytest tests/test_config.py -v` — all green.
